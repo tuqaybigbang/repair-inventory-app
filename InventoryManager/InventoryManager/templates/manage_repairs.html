@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Repairs - Electronic Component Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-wrench me-2"></i>Repair Management</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<!-- Search and Filter Bar -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="GET" class="d-flex">
+            <input type="text" class="form-control me-2" name="search" placeholder="Search repairs..." value="{{ search }}">
+            <select class="form-select me-2" name="status" style="width: auto;">
+                <option value="">All Status</option>
+                <option value="In Progress" {{ 'selected' if status_filter == 'In Progress' }}>In Progress</option>
+                <option value="Completed" {{ 'selected' if status_filter == 'Completed' }}>Completed</option>
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('export_repairs') }}" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Export Repairs
+        </a>
+    </div>
+</div>
+
+<!-- Create Repair Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create New Repair Record</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('create_repair') }}" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Customer</label>
+                        <select class="form-control" id="user_id" name="user_id" required>
+                            <option value="">Select Customer</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="item_name" class="form-label">Item Name</label>
+                        <input type="text" class="form-control" id="item_name" name="item_name" required>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="mb-3">
+                        <label for="problem_description" class="form-label">Problem Description</label>
+                        <input type="text" class="form-control" id="problem_description" name="problem_description" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="repair_notes" class="form-label">Repair Notes</label>
+                        <textarea class="form-control bg-white text-dark" id="repair_notes" name="repair_notes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="used_components" class="form-label">Used Components</label>
+                        <textarea class="form-control bg-white text-dark" id="used_components" name="used_components" rows="2" placeholder="List components used in repair"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Image (Optional)</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-plus me-1"></i>Create
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Repairs List -->
+{% if repairs %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Repair Records ({{ repairs|length }} records)</h5>
+        {% if search or status_filter %}
+        <a href="{{ url_for('manage_repairs') }}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Item</th>
+                        <th>Problem</th>
+                        <th>Status</th>
+                        <th>Received</th>
+                        <th>Completed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for repair in repairs %}
+                    <tr>
+                        <td>{{ repair.id }}</td>
+                        <td>
+                            <i class="fas fa-user me-1"></i>{{ repair.user.username }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('repair_detail', repair_id=repair.id) }}" class="text-decoration-none">
+                                <strong>{{ repair.item_name }}</strong>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ repair.problem_description }}">
+                                {{ repair.problem_description }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if repair.status == 'Completed' %}
+                                <span class="badge bg-success">{{ repair.status }}</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ repair.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ repair.received_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if repair.completed_date %}
+                                {{ repair.completed_date.strftime('%Y-%m-%d') }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('repair_detail', repair_id=repair.id) }}" class="btn btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editRepairModal{{ repair.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="POST" action="{{ url_for('delete_repair', repair_id=repair.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this repair record?')">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Repair Modal -->
+                    <div class="modal fade" id="editRepairModal{{ repair.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Repair: {{ repair.item_name }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('update_repair', repair_id=repair.id) }}" enctype="multipart/form-data">
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Item Name</label>
+                                                    <input type="text" class="form-control" name="item_name" value="{{ repair.item_name }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Status</label>
+                                                    <select class="form-control" name="status">
+                                                        <option value="In Progress" {{ 'selected' if repair.status == 'In Progress' }}>In Progress</option>
+                                                        <option value="Completed" {{ 'selected' if repair.status == 'Completed' }}>Completed</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Problem Description</label>
+                                            <textarea class="form-control bg-white text-dark" name="problem_description" rows="2" required>{{ repair.problem_description }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Repair Notes</label>
+                                            <textarea class="form-control bg-white text-dark" name="repair_notes" rows="3">{{ repair.repair_notes or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Used Components</label>
+                                            <textarea class="form-control bg-white text-dark" name="used_components" rows="2">{{ repair.used_components or '' }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Update Image (Optional)</label>
+                                            <input type="file" class="form-control" name="image" accept="image/*">
+                                            {% if repair.image_filename %}
+                                            <small class="text-muted">Current: {{ repair.image_filename }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-wrench fa-3x text-muted mb-3"></i>
+        <h3 class="text-muted">No repair records found</h3>
+        <p class="text-muted">
+            {% if search or status_filter %}
+                No repair records match your search criteria.
+            {% else %}
+                Create your first repair record using the form above.
+            {% endif %}
+        </p>
+        {% if search or status_filter %}
+        <a href="{{ url_for('manage_repairs') }}" class="btn btn-secondary">Clear Filters</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

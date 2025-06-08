@@ -1,0 +1,68 @@
+Create a Flask web application that combines inventory management and repair tracking for electronic components. Include the following features:
+
+👥 User Management:
+- Admin can create user accounts (username, password, role: admin/user).
+- On first run, create:
+  - Admin: username = admin, password = admin123
+- Users can only see their own dashboard and assigned items.
+
+🔐 Authentication:
+- Session-based login system.
+- Logout functionality.
+- Role-based dashboards: separate for admin and users.
+
+📦 Inventory System (Admin Feature):
+- Admin can manage (add/edit/delete) all inventory items.
+- Each item has:
+  - Name
+  - Quantity
+  - Price
+  - Specifications (type, voltage, model, manufacturer, notes)
+  - Assigned_to (username or 'public')
+
+📄 Item Detail View:
+- Click on an item to see detailed view (modal or separate page).
+- Show full specifications and history of changes.
+
+🛠️ Repair Tracking System:
+- Admin can create repair records for each user.
+- Each repair record includes:
+  - User (owner of the repair request)
+  - Item name
+  - Problem description
+  - Repair notes
+  - Used components (text list or linked inventory items)
+  - Status: “In Progress” or “Completed”
+  - Dates: received date, completed date
+  - Optional image upload
+- Users can log in and:
+  - View list of their repair items
+  - See status (color-coded)
+  - View full repair history for each item
+
+📊 History & Logs:
+- All user and admin actions (login, item change, repair update) are logged with timestamp and username.
+- Admin can view and filter logs.
+
+📤 Export Functionality:
+- Admin can export:
+  - Inventory items
+  - Repair logs
+  to Excel (.xlsx) files.
+
+🔎 Search & Filter:
+- Admin can search by item name, user, specification, or repair status.
+- Filters for status (e.g. show only “In Progress”).
+
+📱 Mobile Responsive:
+- Use Bootstrap 5 to create a responsive, mobile-friendly interface.
+
+📁 Project Structure:
+- Flask + SQLite backend
+- Templates in `templates/`
+- Static assets (CSS, JS, images) in `static/`
+- Jinja2 templates for rendering pages
+
+Bonus:
+- (Optional) Email notification to user when repair status changes to “Completed”
+- (Optional) Pagination and sorting on tables

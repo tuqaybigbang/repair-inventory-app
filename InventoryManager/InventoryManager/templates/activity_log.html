@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Log - Electronic Component Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-history me-2"></i>Activity Log</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Recent Activities</h5>
+    </div>
+    <div class="card-body">
+        {% if logs.items %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>IP Address</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs.items %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            <i class="fas fa-user me-1"></i>{{ log.username }}
+                        </td>
+                        <td>
+                            {% if 'login' in log.action.lower() %}
+                                <span class="badge bg-success">{{ log.action }}</span>
+                            {% elif 'logout' in log.action.lower() %}
+                                <span class="badge bg-info">{{ log.action }}</span>
+                            {% elif 'added' in log.action.lower() or 'created' in log.action.lower() %}
+                                <span class="badge bg-primary">{{ log.action }}</span>
+                            {% elif 'deleted' in log.action.lower() %}
+                                <span class="badge bg-danger">{{ log.action }}</span>
+                            {% elif 'edited' in log.action.lower() %}
+                                <span class="badge bg-warning">{{ log.action }}</span>
+                            {% elif 'export' in log.action.lower() %}
+                                <span class="badge bg-secondary">{{ log.action }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">{{ log.action }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.ip_address or 'N/A' }}</td>
+                        <td>{{ log.details or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if logs.pages > 1 %}
+        <nav aria-label="Activity log pagination">
+            <ul class="pagination justify-content-center">
+                {% if logs.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('activity_log', page=logs.prev_num) }}">Previous</a>
+                </li>
+                {% endif %}
+
+                {% for page_num in logs.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != logs.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('activity_log', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if logs.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('activity_log', page=logs.next_num) }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+            <h3 class="text-muted">No activity logged yet</h3>
+            <p class="text-muted">User activities will appear here as they occur.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

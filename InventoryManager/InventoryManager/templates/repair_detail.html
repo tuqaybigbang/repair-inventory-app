@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}{{ repair.item_name }} - Repair Detail{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-wrench me-2"></i>{{ repair.item_name }}</h1>
+    <div class="btn-group">
+        {% if session.user.role == 'admin' %}
+        <a href="{{ url_for('manage_repairs') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Repairs
+        </a>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+            <i class="fas fa-edit me-2"></i>Edit
+        </button>
+        {% else %}
+        <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Repair Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong><i class="fas fa-user me-2"></i>Customer:</strong></td>
+                                <td>{{ repair.user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong><i class="fas fa-microchip me-2"></i>Item:</strong></td>
+                                <td>{{ repair.item_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong><i class="fas fa-exclamation-triangle me-2"></i>Status:</strong></td>
+                                <td>
+                                    {% if repair.status == 'Completed' %}
+                                        <span class="badge bg-success fs-6">{{ repair.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning fs-6">{{ repair.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong><i class="fas fa-calendar me-2"></i>Received:</strong></td>
+                                <td>{{ repair.received_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong><i class="fas fa-check-circle me-2"></i>Completed:</strong></td>
+                                <td>
+                                    {% if repair.completed_date %}
+                                        {{ repair.completed_date.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        <span class="text-muted">Not completed yet</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong><i class="fas fa-clock me-2"></i>Updated:</strong></td>
+                                <td>{{ repair.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-4">
+                    <h6><i class="fas fa-bug me-2"></i>Problem Description</h6>
+                    <div class="bg-white text-dark border p-3 rounded">
+                        {{ repair.problem_description }}
+                    </div>
+                </div>
+                
+                {% if repair.repair_notes %}
+                <div class="mb-4">
+                    <h6><i class="fas fa-sticky-note me-2"></i>Repair Notes</h6>
+                    <div class="bg-white text-dark border p-3 rounded">
+                        {{ repair.repair_notes }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if repair.used_components %}
+                <div class="mb-4">
+                    <h6><i class="fas fa-cogs me-2"></i>Used Components</h6>
+                    <div class="bg-white text-dark border p-3 rounded">
+                        {{ repair.used_components }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if repair.image_filename %}
+                <div class="mb-4">
+                    <h6><i class="fas fa-image me-2"></i>Repair Image</h6>
+                    <div class="text-center">
+                        <img src="{{ url_for('static', filename='uploads/' + repair.image_filename) }}" 
+                             alt="Repair Image" 
+                             class="img-fluid rounded" 
+                             style="max-height: 400px;">
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info me-2"></i>Quick Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-wrench fa-3x text-primary mb-2"></i>
+                    <h5>{{ repair.item_name }}</h5>
+                    <p class="text-muted">Repair for {{ repair.user.username }}</p>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <div class="alert alert-{% if repair.status == 'Completed' %}success{% else %}warning{% endif %} text-center">
+                        <strong>Current Status</strong><br>
+                        {% if repair.status == 'Completed' %}
+                            <i class="fas fa-check-circle"></i> Completed
+                        {% else %}
+                            <i class="fas fa-clock"></i> In Progress
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if repair.status == 'Completed' and repair.completed_date %}
+                <div class="alert alert-info text-center">
+                    <strong>Repair Duration</strong><br>
+                    {% set duration = repair.completed_date - repair.received_date %}
+                    {{ duration.days }} day(s)
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="small text-muted">
+                    <p class="mb-1"><strong>Repair ID:</strong></p>
+                    <p class="mb-2">#{{ repair.id }}</p>
+                    
+                    <p class="mb-1"><strong>Last Updated:</strong></p>
+                    <p>{{ repair.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if session.user.role == 'admin' %}
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Repair: {{ repair.item_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('update_repair', repair_id=repair.id) }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Item Name</label>
+                                <input type="text" class="form-control" name="item_name" value="{{ repair.item_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-control" name="status">
+                                    <option value="In Progress" {{ 'selected' if repair.status == 'In Progress' }}>In Progress</option>
+                                    <option value="Completed" {{ 'selected' if repair.status == 'Completed' }}>Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Problem Description</label>
+                        <textarea class="form-control bg-white text-dark" name="problem_description" rows="2" required>{{ repair.problem_description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Repair Notes</label>
+                        <textarea class="form-control bg-white text-dark" name="repair_notes" rows="3">{{ repair.repair_notes or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Used Components</label>
+                        <textarea class="form-control bg-white text-dark" name="used_components" rows="2">{{ repair.used_components or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Update Image (Optional)</label>
+                        <input type="file" class="form-control" name="image" accept="image/*">
+                        {% if repair.image_filename %}
+                        <small class="text-muted">Current: {{ repair.image_filename }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
